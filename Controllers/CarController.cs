@@ -20,13 +20,13 @@ namespace TestProject.Controllers
             _repo = repo;
         }
 
-        [HttpGet]
+        [HttpGet(Name = "GetAllCars")]
         public ActionResult<IEnumerable<CarDto>> GetAllCars()
         {
             return Ok(_repo.GetAllCars().Select(item => item.AsDto()));
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetItemCar")]
         public ActionResult<CarDto> GetItemCar(int id)
         {
             var itemCar = _repo.GetItemCar(id);
@@ -39,7 +39,7 @@ namespace TestProject.Controllers
             return Ok(itemCar.AsDto());
         }
 
-        [HttpPost]
+        [HttpPost(Name = "CreateItemCar")]
         public ActionResult CreateItemCar(CreateCarDto carDto)
         {
             var list = _repo.GetAllCars();
@@ -66,10 +66,10 @@ namespace TestProject.Controllers
                 return NotFound();
             }
 
-            return Ok(car.AsDto());
+            return RedirectToAction("GetAllCars");
         }
 
-        [HttpPut]
+        [HttpPut("{id}", Name = "UpdateItemCar")]
         public ActionResult UpdateItemCar(int id, UpdateCarDto carDto)
         {
             var itemCar = _repo.GetItemCar(id);
@@ -92,7 +92,7 @@ namespace TestProject.Controllers
             return Ok(car.AsDto());
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}", Name = "DeleteItemCar")]
         public ActionResult DeleteItemCar(int id)
         {
             var itemCar = _repo.GetItemCar(id);
