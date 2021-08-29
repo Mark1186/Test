@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TestProject.Dtos;
 using TestProject.Models;
 using TestProject.Repositories;
 
@@ -19,33 +21,90 @@ namespace TestProject.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Car>> GetAllCars()
+        public ActionResult<IEnumerable<CarDto>> GetAllCars()
         {
-            return Ok(_repo.GetAllCars());
+            return Ok(_repo.GetAllCars().Select(item => item.AsDto()));
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Car> GetItemCar(int id)
+        public ActionResult<CarDto> GetItemCar(int id)
         {
-            return Ok(_repo.GetItemCar(id));
+            var itemCar = _repo.GetItemCar(id);
+
+            if (itemCar is null)
+            {
+                return NotFound();
+            }
+            
+            return Ok(itemCar.AsDto());
         }
 
         [HttpPost]
-        public ActionResult CreateItemCar(Car car)
+        public ActionResult CreateItemCar(CreateCarDto carDto)
         {
-            return Ok(car);
+            var list = _repo.GetAllCars();
+
+            foreach (var item in list)
+            {
+                if (item.Parent_Id.ToString() == carDto.Parent_Id)
+                {
+                    return BadRequest();
+                }
+            }
+
+            Car car = new Car
+            {
+                Parent_Id = HierarchyId.Parse(carDto.Parent_Id),
+                Name = carDto.Name,
+                DateTime = DateTime.UtcNow
+            };
+
+            _repo.CreateItemCar(car);
+
+            if (car is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(car.AsDto());
         }
 
         [HttpPut]
-        public ActionResult UpdateItemCar(int id, Car car)
+        public ActionResult UpdateItemCar(int id, UpdateCarDto carDto)
         {
-            return Ok(car);
+            var itemCar = _repo.GetItemCar(id);
+
+            if (itemCar is null)
+            {
+                return NotFound();
+            }
+
+            Car car = new Car
+            {
+                Id = id,
+                Parent_Id = HierarchyId.Parse(carDto.Parent_Id),
+                Name = carDto.Name,
+                DateTime = DateTime.UtcNow
+            };
+
+            _repo.UpdateItemCar(car);
+
+            return Ok(car.AsDto());
         }
 
         [HttpDelete]
         public ActionResult DeleteItemCar(int id)
         {
-            return Ok();
+            var itemCar = _repo.GetItemCar(id);
+
+            if (itemCar is null)
+            {
+                return NotFound();
+            }
+
+            _repo.DeleteItemCar(id);
+
+            return Ok(itemCar.AsDto());
         }
     }
 }

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TestProject.Data;
+using TestProject.Repositories;
 
 namespace TestProject
 {
@@ -30,7 +31,9 @@ namespace TestProject
         {
             services.AddDbContext<CarContext>(options => options
                 .UseSqlServer(Configuration
-                .GetConnectionString("DefaultConnection")));
+                .GetConnectionString("DefaultConnection"), x => x.UseHierarchyId()));
+
+            services.AddScoped<ICarRepo, CarRepo>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -52,6 +55,8 @@ namespace TestProject
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            
 
             app.UseAuthorization();
 
